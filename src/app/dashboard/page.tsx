@@ -84,7 +84,7 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <h1 className="app-title">ResumeForge</h1>
+              <h1 className="app-title">SimpleCV</h1>
               <p className="app-subtitle">{user?.email}</p>
             </div>
           </div>
@@ -98,8 +98,8 @@ export default function DashboardPage() {
       <main className="dashboard-main">
         <div className="dashboard-header">
           <div>
-            <h2 className="dashboard-title">My Resumes</h2>
-            <p className="dashboard-subtitle">Create and manage all your CVs in one place</p>
+            <h2 className="dashboard-title">My CVs</h2>
+            <p className="dashboard-subtitle">Build and manage all your CVs in one place</p>
           </div>
           <button onClick={createNew} disabled={creating} className="download-btn">
             {creating ? 'Creating...' : '+ New Resume'}

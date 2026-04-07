@@ -6,13 +6,11 @@ import PersonalInfoForm from './sections/PersonalInfoForm';
 import ExperienceForm from './sections/ExperienceForm';
 import EducationForm from './sections/EducationForm';
 import SkillsForm from './sections/SkillsForm';
-import { exportResumeJSON, importResumeJSON } from '@/lib/exportImport';
+import CVUpload from './CVUpload';
 
 interface Props {
   data: ResumeData;
   onChange: (data: ResumeData) => void;
-  onLoadSample: () => void;
-  onClear: () => void;
 }
 
 interface Section {
@@ -22,6 +20,7 @@ interface Section {
 }
 
 const SECTIONS: Section[] = [
+  { id: 'upload', title: 'Upload Existing CV', icon: '📄' },
   { id: 'personal', title: 'Personal Info', icon: '👤' },
   { id: 'summary', title: 'Professional Summary', icon: '📝' },
   { id: 'experience', title: 'Work Experience', icon: '💼' },
@@ -29,70 +28,20 @@ const SECTIONS: Section[] = [
   { id: 'skills', title: 'Skills', icon: '⚡' },
 ];
 
-export default function ResumeForm({ data, onChange, onLoadSample, onClear }: Props) {
-  const [openSection, setOpenSection] = useState<string>('personal');
-  const [importError, setImportError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+export default function ResumeForm({ data, onChange }: Props) {
+  const [openSection, setOpenSection] = useState<string>('upload');
 
   const toggleSection = (id: string) => {
     setOpenSection((prev) => (prev === id ? '' : id));
   };
 
-  const handleExport = () => {
-    exportResumeJSON(data);
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImportError(null);
-    try {
-      const imported = await importResumeJSON(file);
-      onChange(imported);
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Import failed.');
-    }
-    // Reset the input so the same file can be re-imported
-    e.target.value = '';
+  const handleCVParsed = (parsed: ResumeData) => {
+    onChange(parsed);
+    setOpenSection('personal');
   };
 
   return (
     <div className="resume-form">
-      {/* Top actions */}
-      <div className="form-top-actions">
-        <button onClick={onLoadSample} className="action-btn-secondary text-xs">
-          Load Sample
-        </button>
-        <button onClick={handleImportClick} className="action-btn-secondary text-xs" title="Import a previously exported .json file">
-          Import JSON
-        </button>
-        <button onClick={handleExport} className="action-btn-secondary text-xs" title="Save resume as .json — reload it any time">
-          Export JSON
-        </button>
-        <button onClick={onClear} className="action-btn-danger text-xs">
-          Clear
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".json,application/json"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-      </div>
-
-      {importError && (
-        <div className="import-error">
-          <span>⚠️ {importError}</span>
-          <button onClick={() => setImportError(null)} className="ml-2 opacity-60 hover:opacity-100">✕</button>
-        </div>
-      )}
-
-      {/* Sections */}
       <div className="space-y-2">
         {SECTIONS.map((section) => (
           <div key={section.id} className="form-section-wrapper">
@@ -114,6 +63,9 @@ export default function ResumeForm({ data, onChange, onLoadSample, onClear }: Pr
 
             {openSection === section.id && (
               <div className="form-section-content">
+                {section.id === 'upload' && (
+                  <CVUpload onParsed={handleCVParsed} />
+                )}
                 {section.id === 'personal' && (
                   <PersonalInfoForm
                     data={data.personal}

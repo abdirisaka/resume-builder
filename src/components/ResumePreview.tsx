@@ -3,14 +3,15 @@
 import { useState } from 'react';
 import ClassicTemplate from '@/templates/ClassicTemplate';
 import ModernTemplate from '@/templates/ModernTemplate';
+import MinimalTemplate from '@/templates/MinimalTemplate';
+import ExecutiveTemplate from '@/templates/ExecutiveTemplate';
+import CreativeTemplate from '@/templates/CreativeTemplate';
 import TemplatePicker, { TemplateId } from '@/components/TemplatePicker';
 import ValidationPanel from '@/components/ValidationPanel';
 import { ResumeData } from '@/types/resume';
 import { validateResume } from '@/lib/validation';
 
-interface Props {
-  data: ResumeData;
-}
+interface Props { data: ResumeData; }
 
 type DownloadState = 'idle' | 'loading' | 'error';
 
@@ -25,59 +26,52 @@ export default function ResumePreview({ data }: Props) {
     if (!result.valid || result.warnings.length > 0) {
       setShowValidation(true);
     } else {
-      triggerServerPDF();
+      triggerDownload();
     }
   };
 
-  const triggerServerPDF = async () => {
+  const triggerDownload = async () => {
     setShowValidation(false);
     setDownloadState('loading');
-
     try {
       const res = await fetch('/api/pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resume: data, template }),
       });
-
       if (!res.ok) {
-        // API unavailable (e.g. local dev without Chromium) — fall back to print
-        console.warn('PDF API unavailable, falling back to window.print()');
         setDownloadState('idle');
         setTimeout(() => window.print(), 100);
         return;
       }
-
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const name = data.personal.fullName
-        ? `${data.personal.fullName.toLowerCase().replace(/\s+/g, '-')}-resume.pdf`
-        : 'resume.pdf';
-      a.download = name;
+      a.download = `${data.personal.fullName?.toLowerCase().replace(/\s+/g, '-') || 'cv'}-resume.pdf`;
       a.click();
       URL.revokeObjectURL(url);
       setDownloadState('idle');
     } catch {
-      // Network error — fall back to print
-      console.warn('PDF fetch failed, falling back to window.print()');
       setDownloadState('idle');
       setTimeout(() => window.print(), 100);
     }
   };
 
-  const triggerPrint = () => {
-    setShowValidation(false);
-    setTimeout(() => window.print(), 100);
-  };
+  const TemplateComponent = {
+    classic: ClassicTemplate,
+    modern: ModernTemplate,
+    minimal: MinimalTemplate,
+    executive: ExecutiveTemplate,
+    creative: CreativeTemplate,
+  }[template];
 
   return (
     <div className="resume-preview-panel">
       {/* Toolbar */}
       <div className="preview-toolbar print:hidden">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-slate-600">Live Preview</span>
+          <span className="text-sm font-medium text-slate-600">Preview</span>
           <button
             onClick={() => setShowTemplatePicker((v) => !v)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
@@ -86,13 +80,12 @@ export default function ResumePreview({ data }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
             </svg>
-            {template === 'classic' ? 'Classic' : 'Modern'}
+            {template.charAt(0).toUpperCase() + template.slice(1)}
             <svg className={`h-3 w-3 transition-transform ${showTemplatePicker ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </div>
-
         <button
           onClick={handleDownloadClick}
           disabled={downloadState === 'loading'}
@@ -118,40 +111,30 @@ export default function ResumePreview({ data }: Props) {
         </button>
       </div>
 
-      {/* Template picker dropdown */}
+      {/* Template picker */}
       {showTemplatePicker && (
-        <div className="print:hidden border-b border-slate-200 bg-white px-4 py-3">
-          <TemplatePicker
-            selected={template}
-            onChange={(id) => {
-              setTemplate(id);
-              setShowTemplatePicker(false);
-            }}
-          />
+        <div className="print:hidden border-b border-slate-200 bg-white px-4 py-4">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Choose a template</p>
+          <TemplatePicker selected={template} onChange={(id) => { setTemplate(id); setShowTemplatePicker(false); }} />
         </div>
       )}
 
       {/* Resume paper */}
       <div className="preview-paper-wrapper">
         <div className="preview-paper">
-          {template === 'classic'
-            ? <ClassicTemplate data={data} />
-            : <ModernTemplate data={data} />
-          }
+          <TemplateComponent data={data} />
         </div>
       </div>
 
-      {/* PDF hint */}
       <p className="preview-hint print:hidden">
-        PDF downloads directly on Vercel. In local dev without Chromium, it falls back to browser print → Save as PDF.
+        Download PDF → set destination to "Save as PDF" with margins set to None.
       </p>
 
-      {/* Validation modal */}
       {showValidation && (
         <ValidationPanel
           result={validateResume(data)}
           onClose={() => setShowValidation(false)}
-          onDownloadAnyway={triggerServerPDF}
+          onDownloadAnyway={triggerDownload}
         />
       )}
     </div>

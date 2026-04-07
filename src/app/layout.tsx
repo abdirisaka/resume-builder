@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'ResumeForge — Free Resume Builder',
-  description: 'Build a professional ATS-friendly resume for free. No paywalls, no sign-up required. Download as PDF instantly.',
+  title: 'SimpleCV — Free Professional CV Builder',
+  description: 'Build a professional ATS-friendly CV for free. Upload your existing CV or build from scratch. No paywalls, no sign-up required to start.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -37,7 +37,7 @@ export default function LoginPage() {
           </svg>
         </div>
         <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-subtitle">Sign in to your ResumeForge account</p>
+        <p className="auth-subtitle">Sign in to your SimpleCV account</p>
 
         <form onSubmit={handleLogin} className="auth-form">
           {error && <div className="auth-error">{error}</div>}

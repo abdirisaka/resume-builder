@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
 export default function SignupPage() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -16,7 +18,13 @@ export default function SignupPage() {
     setLoading(true);
     setError('');
 
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { first_name: firstName, last_name: lastName, full_name: `${firstName} ${lastName}` }
+      }
+    });
 
     if (error) {
       setError(error.message);
@@ -61,29 +69,29 @@ export default function SignupPage() {
         <form onSubmit={handleSignup} className="auth-form">
           {error && <div className="auth-error">{error}</div>}
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="form-label">First Name</label>
+              <input className="form-input" type="text" placeholder="Alex"
+                value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+            </div>
+            <div>
+              <label className="form-label">Last Name</label>
+              <input className="form-input" type="text" placeholder="Johnson"
+                value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+            </div>
+          </div>
+
           <div>
             <label className="form-label">Email</label>
-            <input
-              className="form-input"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <input className="form-input" type="email" placeholder="you@example.com"
+              value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
 
           <div>
             <label className="form-label">Password</label>
-            <input
-              className="form-input"
-              type="password"
-              placeholder="At least 8 characters"
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <input className="form-input" type="password" placeholder="At least 8 characters"
+              minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
 
           <button type="submit" disabled={loading} className="auth-btn">

@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ResumeForm from '@/components/ResumeForm';
 import ResumePreview from '@/components/ResumePreview';
-import { loadResume, saveResume, clearResume } from '@/lib/storage';
+import { loadResume, saveResume } from '@/lib/storage';
 import { useResumeHistory } from '@/lib/useResumeHistory';
-import { emptyResume, sampleResume } from '@/data/emptyResume';
+import { emptyResume } from '@/data/emptyResume';
 import { ResumeData } from '@/types/resume';
 import { supabase } from '@/lib/supabase';
 
@@ -74,20 +74,6 @@ export default function HomeClient() {
     return () => window.removeEventListener('keydown', handler);
   }, [undo, redo]);
 
-  const handleLoadSample = () => {
-    if (confirm('This will replace your current data with a sample resume. Continue?')) {
-      reset(sampleResume);
-      if (!user) saveResume(sampleResume);
-    }
-  };
-
-  const handleClear = () => {
-    if (confirm('Clear all resume data? This cannot be undone.')) {
-      reset(emptyResume);
-      if (!user) clearResume();
-    }
-  };
-
   if (!hydrated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -108,7 +94,7 @@ export default function HomeClient() {
               </svg>
             </div>
             <div>
-              <h1 className="app-title">ResumeForge</h1>
+              <h1 className="app-title">SimpleCV</h1>
               {resumeId && (
                 <input
                   className="text-xs text-slate-400 bg-transparent border-none outline-none w-40 hover:text-slate-600"
@@ -142,7 +128,7 @@ export default function HomeClient() {
             </div>
             {user ? (
               <button onClick={() => router.push('/dashboard')} className="action-btn-secondary text-xs">
-                ← My Resumes
+                ← My CVs
               </button>
             ) : (
               <button onClick={() => router.push('/login')} className="action-btn-secondary text-xs">
@@ -161,7 +147,7 @@ export default function HomeClient() {
 
       <main className="app-main print:block">
         <div className={`form-panel print:hidden ${activeView === 'edit' ? 'block' : 'hidden lg:block'}`}>
-          <ResumeForm data={resume} onChange={handleChange} onLoadSample={handleLoadSample} onClear={handleClear} />
+          <ResumeForm data={resume} onChange={handleChange} />
         </div>
         <div className={`preview-panel ${activeView === 'preview' ? 'block' : 'hidden lg:block'}`}>
           <ResumePreview data={resume} />
