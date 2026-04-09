@@ -13,130 +13,80 @@ import { validateResume } from '@/lib/validation';
 
 interface Props { data: ResumeData; }
 
-type DownloadState = 'idle' | 'loading' | 'error';
-
 export default function ResumePreview({ data }: Props) {
-  const [template, setTemplate] = useState<TemplateId>('classic');
-  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
-  const [showValidation, setShowValidation] = useState(false);
-  const [downloadState, setDownloadState] = useState<DownloadState>('idle');
+    const [template, setTemplate] = useState<TemplateId>('classic');
+    const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+    const [showValidation, setShowValidation] = useState(false);
 
-  const handleDownloadClick = () => {
-    const result = validateResume(data);
-    if (!result.valid || result.warnings.length > 0) {
-      setShowValidation(true);
-    } else {
-      triggerDownload();
-    }
+  const triggerPrint = () => {
+        setShowValidation(false);
+        setTimeout(() => window.print(), 150);
   };
 
-  const triggerDownload = async () => {
-    setShowValidation(false);
-    setDownloadState('loading');
-    try {
-      const res = await fetch('/api/pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resume: data, template }),
-      });
-      if (!res.ok) {
-        setDownloadState('idle');
-        setTimeout(() => window.print(), 100);
-        return;
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${data.personal.fullName?.toLowerCase().replace(/\s+/g, '-') || 'cv'}-resume.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-      setDownloadState('idle');
-    } catch {
-      setDownloadState('idle');
-      setTimeout(() => window.print(), 100);
-    }
+  const handleDownload = () => {
+        const result = validateResume(data);
+        if (!result.valid || result.warnings.length > 0) {
+                setShowValidation(true);
+        } else {
+                triggerPrint();
+        }
   };
 
   const TemplateComponent = {
-    classic: ClassicTemplate,
-    modern: ModernTemplate,
-    minimal: MinimalTemplate,
-    executive: ExecutiveTemplate,
-    creative: CreativeTemplate,
+        classic: ClassicTemplate,
+        modern: ModernTemplate,
+        minimal: MinimalTemplate,
+        executive: ExecutiveTemplate,
+        creative: CreativeTemplate,
   }[template];
 
   return (
-    <div className="resume-preview-panel">
-      {/* Toolbar */}
-      <div className="preview-toolbar print:hidden">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-slate-600">Preview</span>
-          <button
-            onClick={() => setShowTemplatePicker((v) => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-            </svg>
-            {template.charAt(0).toUpperCase() + template.slice(1)}
-            <svg className={`h-3 w-3 transition-transform ${showTemplatePicker ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
-        <button
-          onClick={handleDownloadClick}
-          disabled={downloadState === 'loading'}
-          className="download-btn disabled:opacity-60 disabled:cursor-wait"
-        >
-          {downloadState === 'loading' ? (
-            <>
-              <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-              </svg>
-              Generating...
-            </>
-          ) : (
-            <>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Download PDF
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Template picker */}
-      {showTemplatePicker && (
-        <div className="print:hidden border-b border-slate-200 bg-white px-4 py-4">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Choose a template</p>
-          <TemplatePicker selected={template} onChange={(id) => { setTemplate(id); setShowTemplatePicker(false); }} />
-        </div>
-      )}
-
-      {/* Resume paper */}
-      <div className="preview-paper-wrapper">
-        <div className="preview-paper">
-          <TemplateComponent data={data} />
-        </div>
-      </div>
-
-      <p className="preview-hint print:hidden">
-        Download PDF → set destination to "Save as PDF" with margins set to None.
-      </p>
-
-      {showValidation && (
-        <ValidationPanel
-          result={validateResume(data)}
-          onClose={() => setShowValidation(false)}
-          onDownloadAnyway={triggerDownload}
-        />
-      )}
-    </div>
-  );
-}
+        <div className="resume-preview-panel">
+              <div className="preview-toolbar print:hidden">
+                      <div className="flex items-center gap-3">
+                                <span className="text-sm font-medium text-slate-600">Preview</span>span>
+                                <button
+                                              onClick={() => setShowTemplatePicker((v) => !v)}
+                                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                                            >
+                                  {template.charAt(0).toUpperCase() + template.slice(1)}
+                                            <svg className={`h-3 w-3 transition-transform ${showTemplatePicker ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>svg>
+                                </button>button>
+                      </div>div>
+                      <button onClick={handleDownload} className="download-btn">
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>svg>
+                                Download PDF
+                      </button>button>
+              </div>div>
+        
+          {showTemplatePicker && (
+                  <div className="print:hidden border-b border-slate-200 bg-white px-4 py-4">
+                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Choose a template</p>p>
+                            <TemplatePicker selected={template} onChange={(id) => { setTemplate(id); setShowTemplatePicker(false); }} />
+                  </div>div>
+              )}
+        
+              <div className="preview-paper-wrapper">
+                      <div className="preview-paper" id="resume-print-area">
+                                <TemplateComponent data={data} />
+                      </div>div>
+              </div>div>
+        
+              <div className="preview-hint print:hidden">
+                      💡 When saving: set <strong>Destination</strong>strong> to <strong>Save as PDF</strong>strong>, <strong>Margins</strong>strong> to <strong>None</strong>strong>.
+              </div>div>
+        
+          {showValidation && (
+                  <ValidationPanel
+                              result={validateResume(data)}
+                              onClose={() => setShowValidation(false)}
+                              onDownloadAnyway={triggerPrint}
+                            />
+                )}
+        </div>div>
+      );
+}</div>
