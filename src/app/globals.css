@@ -1634,3 +1634,39 @@
   .preview-paper { box-shadow: none !important; margin: 0 auto !important; }
   @page { size: A4; margin: 10mm; }
 }
+@media print {
+  .app-header,
+  .form-panel,
+  .preview-toolbar,
+  .preview-hint,
+  .mobile-view-toggle { display: none !important; }
+
+  .preview-panel,
+  .preview-panel.hidden,
+  [class*="preview-panel"] { 
+    display: block !important; 
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  .preview-paper-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  .preview-paper {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  @page { size: A4; margin: 10mm; }
+  html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
+}
