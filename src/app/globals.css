@@ -1591,3 +1591,34 @@
     print-color-adjust: exact !important;
   }
 }
+
+
+@media print {
+    .app-header { display: none !important; }
+    .form-panel { display: none !important; }
+    .preview-toolbar { display: none !important; }
+    .preview-hint { display: none !important; }
+    .template-picker-grid { display: none !important; }
+    .preview-paper-wrapper {
+          padding: 0 !important;
+          margin: 0 !important;
+          background: white !important;
+          overflow: visible !important;
+    }
+    .preview-paper {
+          box-shadow: none !important;
+          border-radius: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 210mm !important;
+          max-width: none !important;
+    }
+    .preview-panel {
+          display: block !important;
+          width: 100% !important;
+          height: auto !important;
+          overflow: visible !important;
+    }
+    @page { size: A4; margin: 0; }
+    html, body { margin: 0 !important; padding: 0 !important; }
+}
