@@ -1622,3 +1622,15 @@
     @page { size: A4; margin: 0; }
     html, body { margin: 0 !important; padding: 0 !important; }
 }
+
+@media print {
+  .hidden { display: block !important; }
+  .preview-panel { display: block !important; width: 100% !important; }
+  .form-panel { display: none !important; }
+  .app-header { display: none !important; }
+  .preview-toolbar { display: none !important; }
+  .preview-hint { display: none !important; }
+  .preview-paper-wrapper { padding: 0 !important; background: white !important; }
+  .preview-paper { box-shadow: none !important; margin: 0 auto !important; }
+  @page { size: A4; margin: 10mm; }
+}
